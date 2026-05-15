@@ -46,7 +46,7 @@
 
                 <div class="xl:col-span-1">
                     <button 
-                        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium w-full">
+                        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium w-[1.5in]">
                         Search
                     </button>
                 </div>
@@ -61,9 +61,9 @@
         <section class="mt-8">
             <h2 class="text-lg font-semibold text-gray-800 mb-4">Results - <span class="font-normal text-gray-600">click a row to see access instructions</span></h2>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+            <div id="resultsContainer" class="gap-6 mt-8" style="display: grid; grid-template-columns: 1fr;">
                 <!-- Results Table -->
-                <div class="overflow-x-auto bg-white rounded-lg shadow">
+                <div id="resultsTable" class="overflow-x-auto bg-white rounded-lg shadow transition-all duration-300">
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-gray-50 border-b">
                             <tr>
@@ -92,8 +92,16 @@
                 </div>
 
                 <!-- Access Instructions -->
-                <div id="accessDetails" class="bg-white rounded-lg shadow p-6 hidden">
-                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Access Instructions</h3>
+                <div id="accessDetails" class="bg-white rounded-lg shadow p-6 hidden transition-all duration-300">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Access Instructions</h3>
+                        <button 
+                            id="closeAccessDetails" 
+                            class="text-gray-500 hover:text-gray-700 focus:outline-none font-medium"
+                            onclick="closeAccessDetails()">
+                            ✕ Close
+                        </button>
+                    </div>
                     <div id="accessContent" class="text-sm text-gray-700">
                         <!-- Dynamic content will be injected here -->
                     </div>
@@ -134,6 +142,7 @@
                     const details = accessInstructions[tableName];
                     const accessDetailsDiv = document.getElementById('accessDetails');
                     const accessContentDiv = document.getElementById('accessContent');
+                    const resultsContainer = document.getElementById('resultsContainer');
 
                     if (details) {
                         accessContentDiv.innerHTML = `
@@ -145,8 +154,24 @@
                                 ${details.steps.map(step => `<li>${step}</li>`).join('')}
                             </ol>
                         `;
+                        
+                        // Change grid to two columns
+                        resultsContainer.style.gridTemplateColumns = '1fr 1fr';
+                        
+                        // Show access details panel
                         accessDetailsDiv.classList.remove('hidden');
                     }
+                }
+
+                function closeAccessDetails() {
+                    const accessDetailsDiv = document.getElementById('accessDetails');
+                    const resultsContainer = document.getElementById('resultsContainer');
+                    
+                    // Hide access details panel
+                    accessDetailsDiv.classList.add('hidden');
+                    
+                    // Change grid back to single column
+                    resultsContainer.style.gridTemplateColumns = '1fr';
                 }
             </script>
         </section>
