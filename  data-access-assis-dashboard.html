@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Access Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-[1800px] mx-auto px-4 sm:px-6">
+        <!-- Filters -->
+        <section class="rounded-2xl border border-slate-300 bg-white p-6 mt-8">
+            <div class="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div class="xl:col-span-1">
+                    <label for="emailInput" class="block mb-2 text-sm font-medium text-gray-700">User ID (Email)</label>
+                    <input 
+                        id="emailInput" 
+                        type="text" 
+                        value="mar.solis@usps.gov" 
+                        class="h-12 w-full rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        placeholder="mar.solis@usps.gov"
+                    />
+                </div>
+
+                <div class="xl:col-span-1">
+                    <label for="tableNameInput" class="block mb-2 text-sm font-medium text-gray-700">Table Name</label>
+                    <input 
+                        id="tableNameInput" 
+                        type="text" 
+                        value="salprod.db_cdm_gold" 
+                        class="h-12 w-full rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        placeholder="Enter table name"
+                    />
+                </div>
+
+                <div class="xl:col-span-1">
+                    <label for="catalogSelect" class="block mb-2 text-sm font-medium text-gray-700">Catalog</label>
+                    <select 
+                        id="catalogSelect" 
+                        class="h-12 w-full rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="SAL" selected>SAL</option>
+                        <option value="CAT1">CAT1</option>
+                        <option value="CAT2">CAT2</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-between items-center">
+                <button 
+                    class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium">
+                    Search
+                </button>
+                <p class="text-sm text-gray-600">181 matches</p>
+            </div>
+        </section>
+
+        <!-- Results Table -->
+        <section class="mt-8">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Results - <span class="font-normal text-gray-600">click a row to see access instructions</span></h2>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
+                <!-- Results Table -->
+                <div class="overflow-x-auto bg-white rounded-lg shadow">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-6 py-3 text-sm font-medium text-gray-700">Table Name</th>
+                                <th class="px-6 py-3 text-sm font-medium text-gray-700">Schema</th>
+                                <th class="px-6 py-3 text-sm font-medium text-gray-700">Your Access</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr class="hover:bg-gray-50 transition cursor-pointer" onclick="showAccessDetails('agg_factcommercialrevenue_account_t')">
+                                <td class="px-6 py-4 text-blue-600 underline">agg_factcommercialrevenue_account_t</td>
+                                <td class="px-6 py-4 text-gray-600">db_cdm_gold</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 bg-green-100 text-green-800 text-xs rounded-full font-medium">Partial</span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition cursor-pointer" onclick="showAccessDetails('agg_geo_year_vol_rev_t')">
+                                <td class="px-6 py-4 text-blue-600 underline">agg_geo_year_vol_rev_t</td>
+                                <td class="px-6 py-4 text-gray-600">db_cdm_gold</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 bg-red-100 text-red-800 text-xs rounded-full font-medium">No access</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Access Instructions -->
+                <div id="accessDetails" class="bg-white rounded-lg shadow p-6 hidden">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4">Access Instructions</h3>
+                    <div id="accessContent" class="text-sm text-gray-700">
+                        <!-- Dynamic content will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                const accessInstructions = {
+                    'agg_factcommercialrevenue_account_t': {
+                        catalog: 'SAL',
+                        workspace: 'Not Provisioned',
+                        roles: ['Analyst', 'Engineer', 'Scientist'],
+                        steps: [
+                            'Log into ARIS',
+                            'Click the Request Access button',
+                            'Enter Databricks Platform #415',
+                            'Enter SAL Catalog',
+                            'Select one of the following roles: SAL Catalog, SAL Catalog Viewer, UAP-SAL Data Engineer, UAP-SAL Data Analyst, UAP-SAL Data Scientist',
+                            'Add justification in the comments and submit'
+                        ]
+                    },
+                    'agg_geo_year_vol_rev_t': {
+                        catalog: 'SAL',
+                        workspace: 'Not Provisioned',
+                        roles: ['Analyst', 'Engineer', 'Scientist'],
+                        steps: [
+                            'Log into ARIS',
+                            'Click the Request Access button',
+                            'Enter Databricks Platform #415',
+                            'Enter SAL Catalog',
+                            'Select one of the following roles: SAL Catalog, SAL Catalog Viewer, UAP-SAL Data Engineer, UAP-SAL Data Analyst, UAP-SAL Data Scientist',
+                            'Add justification in the comments and submit'
+                        ]
+                    }
+                };
+
+                function showAccessDetails(tableName) {
+                    const details = accessInstructions[tableName];
+                    const accessDetailsDiv = document.getElementById('accessDetails');
+                    const accessContentDiv = document.getElementById('accessContent');
+
+                    if (details) {
+                        accessContentDiv.innerHTML = `
+                            <p><strong>Catalog:</strong> ${details.catalog}</p>
+                            <p><strong>Workspace:</strong> ${details.workspace}</p>
+                            <p><strong>Available Roles:</strong> ${details.roles.join(', ')}</p>
+                            <h4 class="mt-4 font-medium">To get access, follow these steps:</h4>
+                            <ol class="list-decimal pl-6 mt-2 space-y-1">
+                                ${details.steps.map(step => `<li>${step}</li>`).join('')}
+                            </ol>
+                        `;
+                        accessDetailsDiv.classList.remove('hidden');
+                    }
+                }
+            </script>
+        </section>
+    </div>
+</body>
+</html>
