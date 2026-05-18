@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Access Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="max-w-[1800px] mx-auto px-4 sm:px-6">
+        <!-- Filters -->
+        <section class="rounded-2xl border border-slate-300 bg-white p-6 mt-8">
+            <div class="grid grid-cols-1 xl:grid-cols-4 gap-6 items-end">
+                <div class="xl:col-span-1">
+                    <label for="emailInput" class="block mb-2 text-sm font-medium text-gray-700">User ID (Email)</label>
+                    <input 
+                        id="emailInput" 
+                        type="text" 
+                        value="mar.solis@usps.gov" 
+                        class="h-12 w-full rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        placeholder="mar.solis@usps.gov"
+                    />
+                </div>
+
+                <div class="xl:col-span-1">
+                    <label for="tableNameInput" class="block mb-2 text-sm font-medium text-gray-700">Table Name</label>
+                    <input 
+                        id="tableNameInput" 
+                        type="text" 
+                        value="salprod.db_cdm_gold" 
+                        class="h-12 w-full rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500" 
+                        placeholder="Enter table name"
+                    />
+                </div>
+
+                <div class="xl:col-span-1">
+                    <label for="catalogSelect" class="block mb-2 text-sm font-medium text-gray-700">Catalog</label>
+                    <select 
+                        id="catalogSelect" 
+                        class="h-12 w-full rounded-xl border border-slate-300 px-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="SAL" selected>SAL</option>
+                        <option value="CAT1">CAT1</option>
+                        <option value="CAT2">CAT2</option>
+                    </select>
+                </div>
+
+                <div class="xl:col-span-1">
+                    <button 
+                        class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition text-sm font-medium w-[1.5in]">
+                        Search
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end items-center">
+                <p class="text-sm text-gray-600 font-bold">181 matches</p>
+            </div>
+        </section>
+
+        <!-- Results Table -->
+        <section class="mt-8">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">Results - <span class="font-normal text-gray-600">click a row to see access instructions</span></h2>
+
+            <div id="resultsContainer" class="gap-6 mt-8" style="display: grid; grid-template-columns: 1fr;">
+                <!-- Results Table -->
+                <div id="resultsTable" class="overflow-x-auto bg-white rounded-lg shadow transition-all duration-300">
+                    <table class="w-full text-left border-collapse">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-6 py-3 text-sm font-medium text-gray-700">Table Name</th>
+                                <th class="px-6 py-3 text-sm font-medium text-gray-700">Schema</th>
+                                <th class="px-6 py-3 text-sm font-medium text-gray-700">Your Access</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200">
+                            <tr class="hover:bg-gray-50 transition cursor-pointer" onclick="showAccessDetails('agg_factcommercialrevenue_account_t')">
+                                <td class="px-6 py-4 text-blue-600 underline">agg_factcommercialrevenue_account_t</td>
+                                <td class="px-6 py-4 text-gray-600">db_cdm_gold</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full font-medium">Partial</span>
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-gray-50 transition cursor-pointer" onclick="showAccessDetails('agg_geo_year_vol_rev_t')">
+                                <td class="px-6 py-4 text-blue-600 underline">agg_geo_year_vol_rev_t</td>
+                                <td class="px-6 py-4 text-gray-600">db_cdm_gold</td>
+                                <td class="px-6 py-4">
+                                    <span class="px-3 py-1 bg-red-100 text-red-800 rounded-full font-medium whitespace-nowrap">No access</span>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Access Instructions -->
+                <div id="accessDetails" class="bg-white rounded-lg shadow p-6 hidden transition-all duration-300">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-lg font-semibold text-gray-800">Access Instructions</h3>
+                        <button 
+                            id="closeAccessDetails" 
+                            class="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 font-medium text-sm rounded-lg focus:outline-none transition"
+                            onclick="closeAccessDetails()">
+                            ✕ Close
+                        </button>
+                    </div>
+                    <div id="accessContent" class="text-sm text-gray-700">
+                        <!-- Dynamic content will be injected here -->
+                    </div>
+                </div>
+            </div>
+
+            <script>
+                function getRoleColorClasses(role) {
+                    const roleColors = {
+                        'Analyst': 'bg-gray-100 text-gray-700 border border-gray-300',
+                        'Engineer': 'bg-gray-100 text-gray-700 border border-gray-300',
+                        'Scientist': 'bg-gray-100 text-gray-700 border border-gray-300'
+                    };
+                    return roleColors[role] || 'bg-gray-100 text-gray-700 border border-gray-300';
+                }
+
+                const accessInstructions = {
+                    'agg_factcommercialrevenue_account_t': {
+                        catalog: 'SAL',
+                        workspace: 'Not Provisioned',
+                        roles: ['Analyst', 'Engineer', 'Scientist'],
+                        steps: [
+                            'Log into ARIS',
+                            'Click the Request Access button',
+                            'Enter Databricks Platform #415',
+                            'Enter SAL Catalog',
+                            'Select one of the following roles: SAL Catalog, SAL Catalog Viewer, UAP-SAL Data Engineer, UAP-SAL Data Analyst, UAP-SAL Data Scientist',
+                            'Add justification in the comments and submit'
+                        ]
+                    },
+                    'agg_geo_year_vol_rev_t': {
+                        catalog: 'SAL',
+                        workspace: 'Not Provisioned',
+                        roles: ['Analyst', 'Engineer', 'Scientist'],
+                        steps: [
+                            'Log into ARIS',
+                            'Click the Request Access button',
+                            'Enter Databricks Platform #415',
+                            'Enter SAL Catalog',
+                            'Select one of the following roles: SAL Catalog, SAL Catalog Viewer, UAP-SAL Data Engineer, UAP-SAL Data Analyst, UAP-SAL Data Scientist',
+                            'Add justification in the comments and submit'
+                        ]
+                    }
+                };
+
+                function showAccessDetails(tableName) {
+                    const details = accessInstructions[tableName];
+                    const accessDetailsDiv = document.getElementById('accessDetails');
+                    const accessContentDiv = document.getElementById('accessContent');
+                    const resultsContainer = document.getElementById('resultsContainer');
+
+                    if (details) {
+                        accessContentDiv.innerHTML = `
+                            <!-- Table Name Header -->
+                            <div class="mb-6 pb-4 border-b border-gray-200">
+                                <h4 class="text-base font-semibold text-gray-800">${tableName}</h4>
+                                <p class="text-sm text-gray-600 mt-1">${details.catalog} - db_cdm_gold</p>
+                            </div>
+
+                            <!-- Your Provisioned Access Section -->
+                            <div class="mb-6">
+                                <h5 class="text-xs font-bold text-gray-700 uppercase tracking-wide mb-3">Your Provisioned Access</h5>
+                                
+                                <!-- Catalog Status -->
+                                <div class="flex items-center justify-between bg-green-50 rounded-lg p-3 mb-2 border border-green-200">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-green-600 font-bold">Catalog</span>
+                                    </div>
+                                    <div class="flex items-center gap-2 bg-green-100 px-3 py-1 rounded-full">
+                                        <span class="text-green-700 text-xs font-semibold">✓ Viewer</span>
+                                    </div>
+                                </div>
+                                
+                                <!-- Workspace Status -->
+                                <div class="flex items-center justify-between bg-amber-50 rounded-lg p-3 border border-amber-200">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-amber-800 font-bold">Workspace</span>
+                                    </div>
+                                    <span class="text-amber-700 text-xs font-semibold">Not Provisioned</span>
+                                </div>
+                            </div>
+
+                            <!-- Available Roles Section -->
+                            <div class="mb-6">
+                                <h5 class="text-xs font-bold text-gray-700 uppercase tracking-wide mb-3">Available Roles</h5>
+                                <div class="flex flex-wrap gap-2">
+                                    ${details.roles.map(role => `
+                                        <span class="px-3 py-1.5 text-xs font-medium rounded-full text-center ${getRoleColorClasses(role)}">
+                                            ${role}
+                                        </span>
+                                    `).join('')}
+                                </div>
+                                <p class="text-sm text-gray-600 mt-6 font-bold">You have catalog read access but no workspace compute access. Request a workspace role via ARIS to run queries.</p>
+                            </div>
+
+                            <!-- Access Instructions Section -->
+                            <div>
+                                <h5 class="text-xs font-bold text-gray-700 uppercase tracking-wide mb-4">To get access, follow these steps</h5>
+                                
+                                <!-- For Read Access -->
+                                <div class="mb-5">
+                                    <p class="text-sm font-semibold text-green-700 mb-3 px-3 py-1 bg-green-50 rounded block">For read access</p>
+                                    <ol class="space-y-2.5">
+                                        <li class="flex gap-3">
+                                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">1</span>
+                                            <span class="text-sm text-gray-700">Log into <a href="#" class="text-blue-600 underline">ARIS</a></span>
+                                        </li>
+                                        <li class="flex gap-3">
+                                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">2</span>
+                                            <span class="text-sm text-gray-700">Click the Request Access button</span>
+                                        </li>
+                                        <li class="flex gap-3">
+                                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">3</span>
+                                            <span class="text-sm text-gray-700">Enter <a href="#" class="text-blue-600 underline">Databricks Platform #415</a></span>
+                                        </li>
+                                        <li class="flex gap-3">
+                                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">4</span>
+                                            <span class="text-sm text-gray-700">Enter SAL Catalog</span>
+                                        </li>
+                                        <li class="flex gap-3">
+                                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">5</span>
+                                            <span class="text-sm text-gray-700">Select one of the following roles:
+                                                <ul class="mt-1 ml-2 space-y-1">
+                                                    <li>• SAL Catalog</li>
+                                                    <li>• SAL Catalog Viewer</li>
+                                                    <li>• UAP-SAL Data Engineer</li>
+                                                </ul>
+                                            </span>
+                                        </li>
+                                        <li class="flex gap-3">
+                                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">6</span>
+                                            <span class="text-sm text-gray-700">Add justification in the comments and submit</span>
+                                        </li>
+                                    </ol>
+                                </div>
+
+                                <!-- For Write Access -->
+                                <div>
+                                    <p class="text-sm font-semibold text-amber-700 mb-3 px-3 py-1 bg-amber-50 rounded block">For write access</p>
+                                    <ol class="space-y-2.5">
+                                        <li class="flex gap-3">
+                                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">1</span>
+                                            <span class="text-sm text-gray-700">Log into <a href="#" class="text-blue-600 underline">ARIS</a></span>
+                                        </li>
+                                        <li class="flex gap-3">
+                                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">2</span>
+                                            <span class="text-sm text-gray-700">Click the Request Access button</span>
+                                        </li>
+                                        <li class="flex gap-3">
+                                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">3</span>
+                                            <span class="text-sm text-gray-700">Enter <a href="#" class="text-blue-600 underline">Databricks Platform #415</a></span>
+                                        </li>
+                                        <li class="flex gap-3">
+                                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">4</span>
+                                            <span class="text-sm text-gray-700">Enter SAL Catalog</span>
+                                        </li>
+                                        <li class="flex gap-3">
+                                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">5</span>
+                                            <span class="text-sm text-gray-700">Select one of the following roles:
+                                                <ul class="mt-1 ml-2 space-y-1">
+                                                    <li>• SAL Catalog</li>
+                                                    <li>• SAL Catalog Viewer</li>
+                                                    <li>• UAP-SAL Data Engineer</li>
+                                                </ul>
+                                            </span>
+                                        </li>
+                                        <li class="flex gap-3">
+                                            <span class="flex-shrink-0 w-6 h-6 rounded-full bg-gray-100 text-gray-600 text-xs font-bold flex items-center justify-center">6</span>
+                                            <span class="text-sm text-gray-700">Add justification in the comments and submit</span>
+                                        </li>
+                                    </ol>
+                                </div>
+                            </div>
+                        `;
+                        
+                        // Change grid to two columns
+                        resultsContainer.style.gridTemplateColumns = '1fr 1fr';
+                        
+                        // Show access details panel
+                        accessDetailsDiv.classList.remove('hidden');
+                    }
+                }
+
+                function closeAccessDetails() {
+                    const accessDetailsDiv = document.getElementById('accessDetails');
+                    const resultsContainer = document.getElementById('resultsContainer');
+                    
+                    // Hide access details panel
+                    accessDetailsDiv.classList.add('hidden');
+                    
+                    // Change grid back to single column
+                    resultsContainer.style.gridTemplateColumns = '1fr';
+                }
+            </script>
+        </section>
+    </div>
+</body>
+</html>
